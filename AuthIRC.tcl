@@ -5,11 +5,11 @@
 # Information:
 #	Ce script ce charge en premier dans la config eggdrop.
 #	AuthIRC permet d'identifier votre robot aux services ANOPE.
-#	Il s'auto-invite & join les channels desiré.
+#	Il s'auto-invite & join les channels desirï¿½.
 #
-# Copyright 2008-2015 by ARTiSPRETiS (Familly) ARTiSPRETiS@GMail.Com
+# Copyright 2008-2015 by Creole (Familly) Creole@GMail.Com
 #
-# Create by MalaGaM <MalaGaM.ARTiSPRETiS@GMail.Com>
+# Create by ZarTek <ZarTek.Creole@GMail.Com>
 #
 #
 ##########################################################################
@@ -18,13 +18,13 @@
 #    CONFIGURATION    #
 ######################
 
-set AuthIRC_My_Modes				"+iRShB-ws";		# Les modes "user" désiré.
-set AuthIRC_Password				"botstats";			# Le mot de passe pour s'identifier à NickServ.
-set AuthIRC_EMail					"ARTiSPRETiS@GMail.com";			# L'e-mail pour s'enregistrer.
+set AuthIRC_My_Modes				"+iRShB-ws";		# Les modes "user" dï¿½sirï¿½.
+set AuthIRC_Password				"botstats";			# Le mot de passe pour s'identifier ï¿½ NickServ.
+set AuthIRC_EMail					"Creole@GMail.com";			# L'e-mail pour s'enregistrer.
 set AuthIRC_Channels				"";					# La liste des channels a joindre/s'inviter.
 set AuthIRC_TimeWaitBeforeRegNick	"40";				# Temps d'attente en secondes, avant s'enregistrer
 set AuthIRC_InviteMe_AutoAddChan	"1";				# Si on invite votre robot sur un channel ou il est pas il auto join si la valeur est 1.
-set AuthIRC_Chanserv_Invite			"1";				# S'invité via 'msg Chanserv invite #chan' ? Valeur 1 = Oui, 0 = Non
+set AuthIRC_Chanserv_Invite			"1";				# S'invitï¿½ via 'msg Chanserv invite #chan' ? Valeur 1 = Oui, 0 = Non
 set AuthIRC_Invite_On_Nick			"";					# S'invite sur un autre robot. Commencer par le nick suivis de l'arguement a envoyer. Ex : "<NickBotToSend> invite <MyLogin> <MyPass>";
 set AuthIRC_OperLine				"AKiraTana akiranetadmin";		# Si vous avez une Oper Line mettez le login pass. Ex: "<login> <Pass>";
 ######################
@@ -33,14 +33,14 @@ set AuthIRC_OperLine				"AKiraTana akiranetadmin";		# Si vous avez une Oper Line
 
 bind notc - "*/msg NickServ IDENTIFY*" AuthIRC:Notice
 bind notc - "*Password accepted*" AuthIRC:Invite
-bind notc - "*Mot de passe accepté - vous êtes maintenant identifié*" AuthIRC:Invite
+bind notc - "*Mot de passe acceptï¿½ - vous ï¿½tes maintenant identifiï¿½*" AuthIRC:Invite
 bind notc - "*Password authentication*" AuthIRC:Invite
 bind notc - "*Found your hostname*" AuthIRC:Notice
 bind notc - "*Couldn't resolve your hostname*" AuthIRC:Notice
 
 # Register
 bind notc - "*Your nick isn't registered*" AuthIRC:NS:Register:Wait
-bind notc - "*Votre pseudo n'est pas enregistré*" AuthIRC:NS:Register:Wait
+bind notc - "*Votre pseudo n'est pas enregistrï¿½*" AuthIRC:NS:Register:Wait
 bind raw - 477  AuthIRC:NS:Register:Wait
 
 # Ghost
@@ -77,7 +77,7 @@ proc AuthIRC:Connect { from keyword text } {
 }
 
 proc AuthIRC:NS:Ghost { from keyword text } {
-	putlog "AuthIRC: Nick déjà utilié, utilisation de GHOST.";
+	putlog "AuthIRC: Nick dï¿½jï¿½ utiliï¿½, utilisation de GHOST.";
 	putquick "NICK ${::nick}2";
 	putquick "privmsg NickServ :ghost $::nick $::AuthIRC_Password";
 	utimer 5 { putquick "NICK ${::nick}"; }
@@ -93,13 +93,13 @@ proc AuthIRC:NS:NickChangeForced { nick host handle text dest } {
 }
 
 proc AuthIRC:NS:Register:Wait { nick host handle text dest } {
-	putlog "AuthIRC: Je vais enregistrer mon Nick à NickServ dans $::AuthIRC_TimeWaitBeforeRegNick secondes.";
+	putlog "AuthIRC: Je vais enregistrer mon Nick ï¿½ NickServ dans $::AuthIRC_TimeWaitBeforeRegNick secondes.";
 	set ::AuthIRC_NS_Identified	"0";
 	utimer $::AuthIRC_TimeWaitBeforeRegNick { AuthIRC:NS:Register; }
 }
 
 proc AuthIRC:NS:Register { } {
-	putlog "AuthIRC: Enregistrement du nick à NickServ.";
+	putlog "AuthIRC: Enregistrement du nick ï¿½ NickServ.";
 	putquick "privmsg NickServ :register $::AuthIRC_Password $::AuthIRC_EMail";
 	AuthIRC:Invite nick host handle text dest;
 }
@@ -153,7 +153,7 @@ proc AuthIRC:Manual:Channel:Add { arg } {
 	foreach AuthIRC_Chan $::AuthIRC_Channels { channel add $AuthIRC_Chan; }
 }
 proc AuthIRC:NS:Identify { } {
-	putlog "AuthIRC: Je m'identifie à NickServ'";
+	putlog "AuthIRC: Je m'identifie ï¿½ NickServ'";
 	putquick "privmsg NickServ :identify $::AuthIRC_Password";
 }
 
@@ -182,4 +182,4 @@ proc AuthIRC:NS:InviteMe { from keyword text } {
 	if { $::AuthIRC_InviteMe_AutoAddChan == "1" } { channel add [lindex [split $text :] 1]; }
 }
 
-putlog "AuthIRC V1.2 (14/04/2012) ARTiSPRETiS (ARTiSPRETiS@GMail.Com) by MalaGaM.";
+putlog "AuthIRC V1.2 (14/04/2012) Creole (Creole@GMail.Com) by ZarTek.";
