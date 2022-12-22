@@ -97,42 +97,61 @@ namespace eval ::AuthIRC {
 proc ::AuthIRC::INIT { } {
 
 	# iDENT
-
+	# Si la variable SASL n'existe pas ou vaut 1, appelle la procédure SASL
 	if { ![info exists ::AuthIRC::SASL] || ${::AuthIRC::SASL} == 1 } { ::AuthIRC::SASL; }
+	
+	# Lorsque le serveur envoie un message de bienvenue (raw 001), appelle la procédure Connect
 	## 001 : Welcome to the Internet Relay Network nickname
 	bind raw - 001 ::AuthIRC::Connect
+	
+	# Lorsque le serveur indique qu'on ne peut pas rejoindre un channel (raw 473), appelle la procédure Connect
 	## 473 channel : Cannot join channel (+i)
 	bind raw - 473 ::AuthIRC::Connect
 
 	# IDENTIFIED
+	# Récupère les informations de localisation et de message du dictionnaire ANONNCE pour l'événement "Password_accepted"
+	# et lie l'événement notc "*message*" à la procédure IDENTIFIED
 	dict map { locale message } [dict get ${::AuthIRC::ANONNCE} Password_accepted] {
 		bind notc - "*${message}*" ::AuthIRC::IDENTIFIED
 	}
-
+	#Lorsque le serveur envoie un message indiquant que l'on est identifié (raw 307), appelle la procédure IDENTIFIED
 	bind raw - 307 :AuthIRC::IDENTIFIED
 
 	# NEED RESGITER
+	#Lorsque le serveur envoie un message indiquant qu'on doit s'enregistrer (notc "Your nick isn't registered" ou "Votre pseudo n'est pas enregistré"), appelle la procédure NS:Register:Wait
 	bind notc - "*Your nick isn't registered*" ::AuthIRC::NS:Register:Wait
 	bind notc - "*Votre pseudo n'est pas enregistré*" ::AuthIRC::NS:Register:Wait
+	
 	## 477 channel : You need a registered nick to join that channel.
+	# Lorsque le serveur indique qu'on a besoin d'un nick enregistré pour rejoindre un channel (raw 477), appelle la procédure NS:Register:Wait
 	bind raw - 477  ::AuthIRC::NS:Register:Wait
+	
 	## 451 command : Register first.
+	# Lorsque le serveur indique qu'on doit d'abord s'enregistrer pour utiliser une commande (raw 451), appelle la procédure NS:Register:Wait
 	bind raw - 451  ::AuthIRC::NS:Register:Wait
+	
 	## 512 : Authorization required to use Registered Nickname nick
+	# Lorsque le serveur indique qu'une authorization est requise pour utiliser un nick enregistré (raw 512), appelle la procédure NS:Register:Wait
 	bind raw - 512  ::AuthIRC::NS:Register:Wait
 
 	# Ghost
-	bind notc - "*Nickname is already in use*" ::AuthIRC::NS:Ghost
 	## 433 nickname : Nickname is already in use.
+	# Lorsque le serveur indique que le nick est déjà utilisé (notc "Nickname is already in use" ou raw 433), appelle la procédure NS:Ghost
+	bind notc - "*Nickname is already in use*" ::AuthIRC::NS:Ghost
 	bind raw - 433 ::AuthIRC::NS:Ghost
 
+	# Lorsque le serveur indique que le mot de passe est incorrect (notc "Password incorrect"), appelle la procédure NS:WrongPass
 	bind notc - "*Password incorrect*" ::AuthIRC::NS:WrongPass
+	# Lorsque le serveur indique qu'on est forcé à changer de nick (notc "Your nickname is now being changed to"), appelle la procédure NS:NickChangeForced
 	bind notc - "*Your nickname is now being changed to*" ::AuthIRC::NS:NickChangeForced
+	# Lorsque le serveur envoie une liste de channels (notc "*"), appelle la procédure NS:AList
 	bind notc - "*" ::AuthIRC::NS:AList
 
 
 	# Invitation sur un salon
+	# Lorsque le serveur envoie une invitation à rejoindre un salon (raw INVITE), appelle la procédure OnINVITE
 	bind raw - INVITE ::AuthIRC::OnINVITE
+	#Lorsque le bot reçoit une commande "reauth" via DCC, appelle la procédure DCC:ReAuth
 	bind dcc n "reauth" ::AuthIRC::DCC:ReAuth
 	# bind need - * ::AuthIRC::need-all
 
