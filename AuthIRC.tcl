@@ -31,39 +31,14 @@
 #		All donators, testers, repporters & contributors
 #
 ###############################################################################################
-
 namespace eval ::AuthIRC {
-	######################
-	#    CONFIGURATION   #
-	######################
-	variable U_MODES				"+iRShBHIpWxZ-ws";			# Les modes "user" désiré. Plus d'informations : https://www.unrealircd.org/docs/User_Modes
-	variable U_Password				"<VotreMotDePasse>";		# Le mot de passe pour s'identifier é NickServ.
-	variable U_EMail				"Zartek.Creole@GMail.com";	# L'e-mail pour s'enregistrer.
-	variable Channels_list			[list 						\
-		"" 						\
-		"" 						\
-		];														# La liste des channels a joindre (.+chan #salon)
-	variable Chanserv_Invite		[list 						\
-		"" 						\
-		"" 						\
-		];														# Liste des salons à s'inviter avec 'msg chanserv invite #salon'
-	variable Invite_On_Nick			[list 						\
-		"" 						\
-		"" 						\
-		];														# S'invite sur d'autres robots. Commencer par le nick suivis de l'arguement a envoyer. Ex : "<NickBotToSend> invite <MyLogin> <MyPass>";
-	variable OperLine				"";							# Si vous avez une Oper Line mettez le login pass. Ex: "<login> <Pass>";
-	variable TimeWaitBeforeRegNick	"61";						# Temps d'attente en secondes, avant s'enregistrer. Plus d'informations : https://https://github.com/cloudposse/anope/blob/master/templates/nickserv.conf#L116
-	variable OperServName			"OperServ";					# Le nom du services OperServ
-	variable NickServName			"NickServ";					# Le nom du services NickServ
-	variable NickServIdentify		"IDENTIFY";					# nom de la commandes pour s'identifier
-	variable ChanServName			"ChanServ";					# Le nom du services ChanServ
-
-	variable OperSUPERADMIN			1;							# Activer le mode SUPERADMIN ? Plus d'informations : https://https://github.com/anope/anope/blob/2.0/data/operserv.example.conf#L624
-	variable NickServ_AList			1;							# Utiliser ALIST de nickserv pour connaitre les salons dont j'ai acces et m'inviter?
-	variable InviteMe_AutoAddChan	1;				    		# Si on invite votre robot sur un channel ou il est pas il auto join si la valeur est 1.
-	variable SASL					1;				    		# Essayer de s'identifier via SASL ? Plus d'informations : https://www.unrealircd.org/docs/SASL
-	variable verbose				1;							# Rendre le script bavard en partyline
-
+	set PATH_SCRIPT [file dirname [file normalize [info script]]]
+	if { [ catch {
+		source ${PATH_SCRIPT}/AuthIRC.conf
+	} err ] } {
+		putlog "::AuthIRC > Error: Chargement du fichier '${PATH_SCRIPT}/AuthIRC.conf' > $err"
+		return -code error $err
+	}
 	######################
 	#      VARS INIT     #
 	######################
@@ -74,7 +49,7 @@ namespace eval ::AuthIRC {
 	array set Script {
 		"Name"		"TCL-AuthIRC.tcl"
 		"Auteur"	"ZarTek-Creole @ https://github.com/ZarTek-Creole"
-		"Version"	"1.3.1"
+		"Version"	"1.3.2"
 	}
 
 	dict set ANONNCE Password_accepted en_US "Password accepted - you are now recognized."
@@ -99,11 +74,11 @@ proc ::AuthIRC::INIT { } {
 	# iDENT
 	# Si la variable SASL n'existe pas ou vaut 1, appelle la procédure SASL
 	if { ![info exists ::AuthIRC::SASL] || ${::AuthIRC::SASL} == 1 } { ::AuthIRC::SASL; }
-	
+
 	# Lorsque le serveur envoie un message de bienvenue (raw 001), appelle la procédure Connect
 	## 001 : Welcome to the Internet Relay Network nickname
 	bind raw - 001 ::AuthIRC::Connect
-	
+
 	# Lorsque le serveur indique qu'on ne peut pas rejoindre un channel (raw 473), appelle la procédure Connect
 	## 473 channel : Cannot join channel (+i)
 	bind raw - 473 ::AuthIRC::Connect
@@ -121,15 +96,15 @@ proc ::AuthIRC::INIT { } {
 	#Lorsque le serveur envoie un message indiquant qu'on doit s'enregistrer (notc "Your nick isn't registered" ou "Votre pseudo n'est pas enregistré"), appelle la procédure NS:Register:Wait
 	bind notc - "*Your nick isn't registered*" ::AuthIRC::NS:Register:Wait
 	bind notc - "*Votre pseudo n'est pas enregistré*" ::AuthIRC::NS:Register:Wait
-	
+
 	## 477 channel : You need a registered nick to join that channel.
 	# Lorsque le serveur indique qu'on a besoin d'un nick enregistré pour rejoindre un channel (raw 477), appelle la procédure NS:Register:Wait
 	bind raw - 477  ::AuthIRC::NS:Register:Wait
-	
+
 	## 451 command : Register first.
 	# Lorsque le serveur indique qu'on doit d'abord s'enregistrer pour utiliser une commande (raw 451), appelle la procédure NS:Register:Wait
 	bind raw - 451  ::AuthIRC::NS:Register:Wait
-	
+
 	## 512 : Authorization required to use Registered Nickname nick
 	# Lorsque le serveur indique qu'une authorization est requise pour utiliser un nick enregistré (raw 512), appelle la procédure NS:Register:Wait
 	bind raw - 512  ::AuthIRC::NS:Register:Wait
